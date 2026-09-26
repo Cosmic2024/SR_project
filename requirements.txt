@@ -1,0 +1,9 @@
+SpeechRecognition>=3.10,<4
+pocketsphinx>=5.0,<6
+
+# Optional backend: higher-accuracy local transcription (needs internet to
+# fetch model weights on first use). Uncomment to enable:
+# openai-whisper
+
+# Optional: needed only for the `mic` CLI command (live microphone capture)
+# PyAudio>=0.2.13
