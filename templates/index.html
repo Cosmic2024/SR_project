@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASR Console</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<main class="console">
+  <header class="console__header">
+    <div class="wordmark">
+      <span class="wordmark__title">ASR Console</span>
+      <span class="wordmark__sub">speech → text, offline-first</span>
+    </div>
+    <div class="status" id="status">
+      <span class="status__dot" id="statusDot"></span>
+      <span id="statusText">ready</span>
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="dropzone" id="dropzone" tabindex="0" role="button"
+         aria-label="Upload an audio file">
+      <canvas id="waveform" class="dropzone__canvas" aria-hidden="true"></canvas>
+      <div class="dropzone__prompt" id="dropPrompt">
+        <svg class="dropzone__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 6v24M24 30l-8-8M24 30l8-8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10 34v4a4 4 0 0 0 4 4h20a4 4 0 0 0 4-4v-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+        <p class="dropzone__title">Drop an audio file here</p>
+        <p class="dropzone__hint">or click to browse — wav, mp3, m4a, flac, ogg</p>
+      </div>
+      <input type="file" id="fileInput" accept=".wav,.mp3,.m4a,.flac,.ogg,.aiff,.aif,.webm" hidden>
+    </div>
+
+    <div class="meta" id="fileMeta" hidden>
+      <span id="fileName">—</span>
+      <span class="meta__dot">·</span>
+      <span id="fileSize">—</span>
+    </div>
+
+    <div class="controls">
+      <div class="segmented" id="backendSelect" role="radiogroup" aria-label="Recognition engine">
+        <button type="button" class="segmented__option is-active" data-backend="sphinx" role="radio" aria-checked="true">Sphinx</button>
+        <button type="button" class="segmented__option" data-backend="google" role="radio" aria-checked="false">Google</button>
+        <button type="button" class="segmented__option" data-backend="whisper" role="radio" aria-checked="false">Whisper</button>
+      </div>
+      <button type="button" class="transcribe-btn" id="transcribeBtn" disabled>
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l10-5.5z"/></svg>
+        <span>Transcribe</span>
+      </button>
+    </div>
+
+    <p class="backend-hint" id="backendHint">Sphinx runs fully offline, no setup required.</p>
+  </section>
+
+  <section class="strip" id="resultStrip" hidden>
+    <div class="strip__perforation" aria-hidden="true"></div>
+    <p class="strip__text" id="resultText"></p>
+    <div class="strip__meta">
+      <span id="metaDuration">—</span>
+      <span class="meta__dot">·</span>
+      <span id="metaBackend">—</span>
+      <span class="meta__dot">·</span>
+      <span id="metaElapsed">—</span>
+    </div>
+    <button type="button" class="copy-btn" id="copyBtn">Copy text</button>
+  </section>
+
+  <section class="strip strip--error" id="errorStrip" hidden>
+    <p class="strip__error-title">Couldn't transcribe that</p>
+    <p class="strip__error-text" id="errorText"></p>
+  </section>
+
+  <footer class="console__footer">
+    <span>Backends: PocketSphinx (offline) · Google Web Speech · Whisper</span>
+  </footer>
+</main>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -12,9 +12,19 @@ $ asr-tool transcribe samples/turn_on_lights.wav
 turn on the lights
 ```
 
+A small web UI is also included — drag in an audio file, watch its real
+waveform get drawn, and see the transcript appear:
+
+```
+python app.py
+# then open http://127.0.0.1:5000
+```
+
 ## Features
 
 - 🎙️ Transcribe audio files (WAV, MP3, FLAC, M4A, ...) to text
+- 🖥️ Web UI: drag-and-drop upload, a waveform drawn from the actual audio,
+  and the transcript displayed live (`python app.py`)
 - 🔌 Pluggable backend architecture — swap recognition engines without
   changing calling code
 - 📴 **Fully offline** default backend (CMU PocketSphinx) — works with zero
@@ -40,6 +50,8 @@ turn on the lights
 | Test-audio synthesis (offline)    | [SVOX Pico TTS](https://packages.debian.org/libttspico-utils) (`pico2wave`) |
 | Testing framework                 | [pytest](https://pytest.org) |
 | CLI                                | Python `argparse` |
+| Web UI backend                     | [Flask](https://flask.palletsprojects.com/) |
+| Web UI frontend                    | Vanilla HTML/CSS/JS, Canvas API for the waveform, Google Fonts (Space Grotesk, IBM Plex Mono) |
 | Packaging                          | `pyproject.toml` / setuptools |
 
 ## Project Structure
@@ -49,8 +61,14 @@ asr-tool/
 ├── asr_tool/
 │   ├── __init__.py
 │   ├── engine.py          # Core ASR logic: backends + transcribe_file()
-│   ├── audio_utils.py      # ffmpeg conversion + microphone capture
+│   ├── audio_utils.py      # ffmpeg conversion, mic capture, waveform peaks
 │   └── cli.py               # Command-line interface
+├── app.py                     # Flask web app (upload → transcribe → display)
+├── templates/
+│   └── index.html            # Web UI page
+├── static/
+│   ├── css/style.css          # Web UI styling
+│   └── js/app.js               # Web UI behavior (upload, waveform, fetch)
 ├── scripts/
 │   ├── generate_sample_audio.py   # Creates offline test audio (pico2wave)
 │   └── demo.py                     # Minimal library-usage example
@@ -161,6 +179,29 @@ If you didn't run `pip install .`, invoke the CLI as a module instead:
 ```bash
 python -m asr_tool.cli transcribe samples/open_the_door.wav
 ```
+
+### Web UI
+
+Start the local web app:
+
+```bash
+python app.py
+```
+
+Then open **http://127.0.0.1:5000** in a browser. Drag an audio file onto
+the panel (or click to browse), pick a backend, and hit **Transcribe**. The
+waveform shown is drawn from your actual file — decoded client-side the
+moment you drop it, then redrawn from the server's analysis once the
+transcript comes back. Click **Copy text** to copy the result.
+
+The web app reuses the exact same `asr_tool.engine` used by the CLI, so
+anything that works with `asr-tool transcribe` works here too, including
+automatic conversion of mp3/m4a/etc. via ffmpeg.
+
+> This runs Flask's built-in development server, which is fine for local/
+> personal use but isn't meant to be exposed to the internet as-is. For a
+> real deployment, put it behind a production WSGI server (e.g. gunicorn)
+> and a reverse proxy.
 
 ### As a Python library
 

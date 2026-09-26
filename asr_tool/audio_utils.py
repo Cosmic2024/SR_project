@@ -8,8 +8,10 @@ testable.
 
 from __future__ import annotations
 
+import audioop
 import shutil
 import subprocess
+import wave
 from pathlib import Path
 
 import speech_recognition as sr
@@ -17,6 +19,48 @@ import speech_recognition as sr
 
 class AudioUtilsError(Exception):
     pass
+
+
+def extract_waveform_peaks(wav_path: str, num_peaks: int = 120) -> list[float]:
+    """Downsample a WAV file into `num_peaks` normalized amplitude values (0-1).
+
+    Used to draw a waveform that reflects the actual uploaded audio, rather
+    than a decorative placeholder. Requires 16-bit PCM WAV (which is what
+    convert_to_wav() and the sample files already produce).
+    """
+    with wave.open(wav_path, "rb") as wf:
+        n_channels = wf.getnchannels()
+        sample_width = wf.getsampwidth()
+        n_frames = wf.getnframes()
+        raw = wf.readframes(n_frames)
+
+    if sample_width != 2:
+        # Coerce to 16-bit if the file is some other bit depth.
+        raw = audioop.lin2lin(raw, sample_width, 2)
+        sample_width = 2
+
+    if n_channels > 1:
+        raw = audioop.tomono(raw, sample_width, 0.5, 0.5)
+
+    total_samples = len(raw) // sample_width
+    if total_samples == 0 or num_peaks <= 0:
+        return [0.0] * max(num_peaks, 0)
+
+    chunk_size = max(1, total_samples // num_peaks)
+    peaks: list[float] = []
+    for i in range(num_peaks):
+        start = i * chunk_size * sample_width
+        end = start + chunk_size * sample_width
+        chunk = raw[start:end]
+        if not chunk:
+            peaks.append(0.0)
+            continue
+        peak_amplitude = audioop.max(chunk, sample_width)
+        peaks.append(peak_amplitude / 32768.0)
+
+    # Normalize so the loudest peak hits 1.0 (keeps quiet clips visible).
+    loudest = max(peaks) or 1.0
+    return [round(min(p / loudest, 1.0), 4) for p in peaks]
 
 
 def convert_to_wav(input_path: str, output_path: str | None = None) -> str:

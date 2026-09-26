@@ -1,5 +1,6 @@
 SpeechRecognition>=3.10,<4
 pocketsphinx>=5.0,<6
+Flask>=3.0,<4
 
 # Optional backend: higher-accuracy local transcription (needs internet to
 # fetch model weights on first use). Uncomment to enable:
